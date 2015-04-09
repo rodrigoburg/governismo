@@ -1,0 +1,291 @@
+@font-face {
+	font-family: Flama-Light;
+	src: url(/fonts/FlamaLight-Normal-webfont.woff);
+}
+@font-face {
+	font-family: Flama-Book;
+	src: url(/fonts/Flama-Book-webfont.woff);
+}
+@font-face {
+	font-family: Flama-Black;
+	src: url(/fonts/FlamaBlack-Normal-webfont.woff);
+}
+@font-face {
+	font-family: Flama-Bold;
+	src: url(/fonts/Flama-Bold-webfont.woff);
+}
+
+@font-face {
+	font-family: Flama-BookItalic;
+	src: url(/fonts/Flama-BookItalic-webfont.woff);
+}
+
+
+@media (min-width: 858px) {
+    html.edados {
+        font-size: 12px;
+    }
+}
+
+@media (min-width: 780px) {
+    html.edados {
+        font-size: 11px;
+    }
+}
+
+@media (min-width: 702px) {
+    html.edados  {
+        font-size: 10px;
+    }
+}
+
+@media (min-width: 724px) {
+    html.edados  {
+        font-size: 9px;
+    }
+}
+
+@media (max-width: 623px) {
+    html.edados  {
+        font-size: 8px;
+    }
+}
+html.edados {
+    height:105%;
+    width: 920px;
+}
+
+p.linhafina {
+    font-family:"Flama-Light";
+    font-size:2.4rem;
+    text-align: justify;
+}
+
+p.explicacao {
+    font-size:1.4rem;
+    text-align: justify;
+}
+
+.edados body {
+  background: #fcfcfa;
+  color: #333;
+  font-family: "Flama-Book";
+  margin: 1em auto 4em auto;
+  position: relative;
+  width: 92%;
+}
+.edados .btn {
+    font-family:"Flama-Light";
+}
+
+h1.titulo {
+  font-family: "Flama-Bold";
+  color: #000;
+  font-size: 5rem;
+  margin: .3em 0 .1em 0;
+}
+
+a {
+  color: steelblue;
+}
+
+a:not(:hover) {
+  text-decoration: none;
+}
+
+textarea {
+  font-size: 100%;
+}
+
+body > pre {
+  border-left: solid 2px #ccc;
+  padding-left: 18px;
+  margin: 2em 0 2em -20px;
+}
+
+svg {
+  font: 10px sans-serif;
+}
+
+.axis path, .axis line {
+  fill: none;
+  stroke: #000;
+  shape-rendering: crispEdges;
+}
+
+sup, sub {
+  line-height: 0;
+}
+
+q:before {
+  content: "â€œ";
+}
+
+q:after {
+  content: "â€";
+}
+
+blockquote q {
+  line-height: 1.5em;
+  display: inline;
+}
+
+blockquote q:before,
+blockquote q:after {
+  content: "";
+}
+
+
+#chart {
+    margin-left: -40px;
+    height: 506px;
+}
+
+text {
+    font-family:"Flama-Light";
+    font: 10px sans-serif;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+
+}
+
+.dot {
+    stroke: #000;
+}
+
+.axis path, .axis line {
+    fill: none;
+    stroke: #000;
+    shape-rendering: crispEdges;
+}
+
+.axis  {
+    font-size: 1.3rem;
+
+}
+
+.year.label {
+    font: 500 80px "Flama-Book";
+    fill: #ddd;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+
+}
+
+.governo.label {
+    font: 70px "Flama-Black";
+    fill: #ddd;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+.year.label.active {
+    fill: #aaa;
+}
+
+.overlay {
+    fill: none;
+    pointer-events: all;
+    cursor: ew-resize;
+}
+
+.selecionada {
+    padding-left:
+}
+
+a.selecionada {
+    width:50 !important;
+}
+a.nao-selecionada {
+    width:50 !important;
+}
+div.tooltip {
+  position: absolute;
+  font-family: "Flama-BookItalic";
+  font-size:1.9rem;
+  text-align: left;
+  width: auto;
+  height: auto;
+  padding: 6px;
+  margin-left: 35px;
+  background: lightsteelblue;
+  border: 0px;
+  border-radius: 8px;
+  pointer-events: none;
+}
+
+p#nota {
+    font-family: "Flama-Book";
+    font-size:1.5rem;
+    color:steelblue;
+    position:relative;
+    cursor:pointer;
+    width:340px;
+}
+
+#tecnica {
+    display:none;
+    position: absolute;
+    font-family: "Flama-Light";
+    font-size:1.3rem;
+    text-align: justify;
+    width: 400px;
+    height: auto;
+    padding: 6px;
+    margin-left: 35px;
+    background: orange;
+    border: 0px;
+    border-radius: 8px;
+    pointer-events: none;
+}
+
+.caixa
+{
+    display: none;
+    list-style-type: none;
+    padding: 5px;
+    margin: 0;
+    border: 1px solid #DCDCDC;
+    background-color: #fff;
+    position: absolute;
+    width:200px;
+}
+
+.caixa li{
+
+    margin: 0;
+    width: auto;
+    border: 1px solid #fff;
+    font-family: "Flama-Light";
+    font-size:1.4rem;
+}
+.caixa li:hover
+{
+    cursor: pointer;
+    background-color: #DCDCDC;
+}
+.caixa li a
+{
+    text-transform: none;
+}
+.seletor {
+    vertical-align: middle  !important;
+    text-align: center !important;
+}
+
+.ui-icon {
+    vertical-align: middle  !important;
+    text-align: center !important;
+}
+
