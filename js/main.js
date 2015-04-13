@@ -5,13 +5,29 @@ var margins = {
     bottom:110,
     left:70,
     right:70,
-    top:80
+    top:50
 }
 
-var pagina = null
-var baixar = {}
-var url_base = "https://spreadsheets.google.com/feeds/cells/1cR-OkyIUsU3vTw2JiCc9JbyTWvBl2dlzvtSfeTczlx0/2/public/values?alt=json"
+var url_gov = "data/variancia_camara.json",
+    url_pop = "https://spreadsheets.google.com/feeds/cells/1cR-OkyIUsU3vTw2JiCc9JbyTWvBl2dlzvtSfeTczlx0/2/public/values?alt=json",
+    dados = [],
+    partidos = [],
+    dados_gov,
+    dados_pop,
+    grafico
 
+
+var baixa_dados = function () {
+    $.getJSON(url_pop, function  (d) {
+        dados_pop = le_planilha(d)
+        d3.json(url_gov, function(e) {
+            dados_gov = e
+            arruma_dados()
+            desenha_grafico()
+            adiciona_partidos()
+        })
+    })
+}
 
 var le_planilha = function(d) {
     var cells = d.feed.entry; // d são os dados recebidos do Google...
@@ -38,39 +54,152 @@ var le_planilha = function(d) {
             celulas[cellPos[0]][titulos[cellPos[1]]] = conteudo
         }
     }
-    return celulas
+    saida = []
+    for (key in celulas) {
+        saida.push(celulas[key])
+    }
+    return saida
 }
 
-var baixa_planilha_dados = function (callback) {
-    $.getJSON(url_base, function  (d) {
-        var dados = le_planilha(d)
-        console.log(dados)
-        var saida = []
-        for (key in dados) {
-            var item = dados[key]
-            saida.push(item)
+var arruma_dados = function () {
+
+    //pega só os dados para DILMA E LULA
+    var presidentes = ["DILMA","LULA"]
+    dados_pop = $.grep(dados_pop, function(d) {
+        return presidentes.indexOf(d.PRESIDENTE) > -1;
+    });
+
+    //coloca as datas do data_gov em formato de data
+    dados_gov = dados_gov.map(function (d) {
+        var saida = acha_governismo(d.governismo)
+        var data = saida[0].map(function (e) {
+            return e.substring(0, 7)
+        })
+        var governismo = saida[1]
+        //e agora pegamos só as variávies que queremos
+        return {
+            sigla: d.name,
+            data: data,
+            governismo: governismo
         }
-        if (callback) callback(saida)
+    })
+
+    //agora vamos montar a variável final dos dados
+    //vamos usar os dados de populariadde como referência, já que há menos data com pesquisa q com o governismo
+    dados_pop.forEach(function (d) {
+        //para cada dado de popularidade, pegamos a data e colocamos no formato ano-mês
+        var data = d.CAMPO.split("/")[2]+"-"+d.CAMPO.split("/")[1]
+        //e procuramos o governismo dos partidos nessa data específica
+        var i = dados_gov.map(function (e){
+            var governismo = filtra_gov(e,data)
+            if (governismo) {
+                return {
+                    sigla: e.sigla,
+                    governismo:governismo
+                }
+            }
+        })
+        //agora colocamos os dados dessa data no dicionário de dados e o nome dos partidos para o select
+        //também vamos criar 2 variáveis para calcularmos a média geral desse período
+        var media = 0
+        var total = 0
+        var popularidade
+        i.forEach(function (e) {
+            if (e != undefined) {
+                e["data"] = data
+                e["popularidade"] = d.saldo
+                media += parseInt(e.governismo)
+                total += 1
+                popularidade = d.saldo
+                dados.push(e)
+                if (partidos.indexOf(e.sigla) == -1) {
+                    partidos.push(e.sigla)
+                }
+            }
+        })
+
+        //agora colocamos a média também no dados
+        var governismo = parseInt(media/total)
+        if (!(isNaN(governismo))) {
+            var item = {
+                sigla:"GERAL",
+                governismo:governismo,
+                data:data,
+                popularidade:popularidade
+            }
+            dados.push(item)
+        }
     })
 }
 
 
+function filtra_gov(item,data) {
+    var index = item.data.indexOf(data)
+    if (index == -1) {
+        //console.log(item.sigla,data)
+        return null
+    } else {
+        return item.governismo[index]
+    }
+}
+
+function acha_governismo(lista) {
+    var datas = []
+    var govs = []
+    lista.forEach(function (d) {
+        datas.push(d[0])
+        govs.push(d[1])
+    })
+    return [datas,govs]
+}
+
+
+baixa_dados()
+
+function desenha_grafico() {
+    var svg = dimple.newSvg("#grafico", width+60, height);
+    var dados_filtrados = dimple.filterData(dados,"sigla","GERAL");
+
+    grafico = new dimple.chart(svg, dados_filtrados);
+    grafico.setBounds(margins.left,margins.top, width-margins.right, height-margins.bottom)
+    var x = grafico.addMeasureAxis("x", "governismo");
+    x.title = "Taxa de governismo (%)"
+    x.overrideMin = -0;
+    x.overrideMax = 100;
+
+    var y = grafico.addMeasureAxis("y", "popularidade");
+    y.title = "Saldo de popularidade do governo (%)"
+    y.overrideMin = -0;
+    y.overrideMax = 100;
+
+    //myChart.addMeasureAxis("z", "Operating Profit");
+    grafico.addSeries("data", dimple.plot.bubble);
+    //myChart.addLegend(200, 10, 360, 20, "right");
+    grafico.draw();
+}
+
+function muda_grafico(item) {
+    var novos_dados = dimple.filterData(dados, "sigla",item.text.trim())
+    console.log(novos_dados)
+    grafico.data = novos_dados
+    grafico.draw();
+}
+
+function adiciona_partidos() {
+    var botao = $("#lista_partidos")
+    var item = '<li role="presentation" data-pos="'+1+'"><a role="menuitem" style="width:140px" onclick="muda_grafico(this);" class="selecionada" tabindex="-1" href="#">GERAL</a></li>'
+    botao.append(item)
+
+    var i = 2
+    partidos.forEach(function (d) {
+        item = '<li role="presentation" data-pos="'+i+'"><a role="menuitem" style="width:100px" onclick="muda_grafico(this);" class="selecionada" tabindex="-1" href="#"> '+d+'</a></li>'
+        botao.append(item)
+        i++
+    })
+
+}
 
 /*
-
-var svg = dimple.newSvg("#grafico", 590, 400);
-d3.tsv("/data/example_data.tsv", function (data) {
-    var myChart = new dimple.chart(svg, data);
-    myChart.setBounds(60, 30, 500, 330)
-    myChart.addMeasureAxis("x", "Unit Sales Monthly Change");
-    myChart.addMeasureAxis("y", "Price Monthly Change");
-    myChart.addMeasureAxis("z", "Operating Profit");
-    myChart.addSeries(["SKU", "Channel"], dimple.plot.bubble);
-    myChart.addLegend(200, 10, 360, 20, "right");
-    myChart.draw();
-});
-
-
  * Created by rodrigoburg on 23/03/15.
 
 url = "data/variancia_camara.json"
@@ -100,23 +229,7 @@ function toggleSelect(el) {
     $("#partNSelecionados li").sort(sort_comp).appendTo("#partNSelecionados");
 }
 
-function adiciona_partidos() {
-    var botao = $("#partSelecionados")
-    //primeiro botão é o que tira todos
-    var item = '<li role="presentation" data-pos="'+1+'"><a role="menuitem" style="width:140px" onclick="tira_todos();" class="selecionada" tabindex="-1" href="#">Retirar todos</a></li>'
-    botao.append(item)
-    
-    var i = 2
-    partidos.forEach(function (d) {
-        item = '<li role="presentation" data-pos="'+i+'"><a role="menuitem" style="width:100px" onclick="toggleSelect(this);" class="selecionada glyphicon glyphicon-remove-circle" tabindex="-1" href="#"> '+d+'</a></li>'
-        botao.append(item)
-        i++
-    })
-    
-    //e, na outra lista, colocamos botão que coloca todos
-    item = '<li role="presentation" data-pos="1"><a role="menuitem" style="width:140px"onclick="coloca_todos();" class="nao-selecionada" tabindex="-1" href="#">Selecionar todos</a></li>'
-    $("#partNSelecionados").append(item)
-}
+
 
 tecnica = d3.select("#tecnica")
 
