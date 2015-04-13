@@ -164,13 +164,13 @@ function desenha_grafico() {
     grafico.setBounds(margins.left,margins.top, width-margins.right, height-margins.bottom)
     var x = grafico.addMeasureAxis("x", "governismo");
     x.title = "Taxa de governismo (%)"
-    x.overrideMin = -0;
+    x.overrideMin = 0;
     x.overrideMax = 100;
 
     var y = grafico.addMeasureAxis("y", "popularidade");
     y.title = "Saldo de popularidade do governo (%)"
-    y.overrideMin = -0;
-    y.overrideMax = 100;
+    y.overrideMin = -55;
+    y.overrideMax = 80;
 
     //myChart.addMeasureAxis("z", "Operating Profit");
     grafico.addSeries("data", dimple.plot.bubble);
