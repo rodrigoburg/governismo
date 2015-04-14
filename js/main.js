@@ -8,14 +8,55 @@ var margins = {
     top:50
 }
 
-var url_gov = "data/variancia_camara.json",
+var url_gov = "data/variancia_camara_mes.json",
     url_pop = "https://spreadsheets.google.com/feeds/cells/1cR-OkyIUsU3vTw2JiCc9JbyTWvBl2dlzvtSfeTczlx0/2/public/values?alt=json",
     dados = [],
     partidos = [],
+    selecionados = [],
     dados_gov,
     dados_pop,
+    mudado,
     grafico
 
+var paleta = {
+    GERAL:"#666666",
+    PTC:'#A11217',
+    PT:'#BE003E',
+    PCdoB:'#BC005C',
+    PSL:'#BA007C',
+    PRB:'#98007F',
+    PRTB:'#7B057E',
+    PP:'#5E196F',
+    PHS:'#45187D',
+    PMDB:'#3A3A8B',
+    PTB:'#00408F',
+    PRP:'#00528B',
+    PSB:'#0066A4',
+    PROS:'#007CC0',
+    PTN:'#009BDB',
+    PDT:'#0096B2',
+    PR:'#009493',
+    PTdoB:'#008270',
+    PV:'#009045',
+    PSC:'#00602D',
+    PMN:'#5F8930',
+    PSD:'#7BAC39',
+    PEN:'#A3BD31',
+    PSDC:'#CAD226',
+    SDD:'#FEEE00',
+    PSOL:'#E9BC00',
+    PPS:'#B6720A',
+    DEM:'#9A740F',
+    PSDB:'#634600',
+    PST:'#634600',
+    PL:'#634600',
+    PPL:'#634600',
+    PMR:'#634600',
+    PFL_DEM:'#634600',
+    PRONA:'#634600',
+    PAN:'#634600',
+    PPB:'#634600'
+}
 
 var baixa_dados = function () {
     $.getJSON(url_pop, function  (d) {
@@ -173,21 +214,52 @@ function desenha_grafico() {
     y.overrideMax = 80;
 
     //myChart.addMeasureAxis("z", "Operating Profit");
-    grafico.addSeries("data", dimple.plot.bubble);
+    serie = grafico.addSeries(["data","sigla"], dimple.plot.bubble);
+    serie.getTooltipText = function (e) {
+        console.log(e)
+        return [
+                "Data: " + e.aggField[0],
+                "Sigla: "+ e.aggField[1],
+                "Popularidade do governo: " + e.yValue +"%",
+                "Governismo da sigla: " + e.xValue +"%"
+        ];
+    };
+
+
+    //agora coloca as cores da paleta
+    for (var partido in paleta) {
+        grafico.assignColor(partido,paleta[partido])
+    }
     //myChart.addLegend(200, 10, 360, 20, "right");
     grafico.draw();
+
+    selecionados.push("GERAL")
 }
 
 function muda_grafico(item) {
-    var novos_dados = dimple.filterData(dados, "sigla",item.text.trim())
-    console.log(novos_dados)
+    var sigla = item.text.trim()
+    //se a sigla não estiver selecionada, colocamos ela lá
+    if (selecionados.indexOf(sigla) == -1) {
+        selecionados.push(sigla)
+        $(item).addClass("glyphicon")
+        $(item).addClass("glyphicon-ok")
+    } else {
+        //se já estiver selecionada, retiramos
+        selecionados.splice(selecionados.indexOf(sigla),1)
+        $(item).removeClass("glyphicon")
+        $(item).removeClass("glyphicon-ok")
+
+    }
+
+    var novos_dados = dimple.filterData(dados, "sigla",selecionados)
+
     grafico.data = novos_dados
     grafico.draw();
 }
 
 function adiciona_partidos() {
     var botao = $("#lista_partidos")
-    var item = '<li role="presentation" data-pos="'+1+'"><a role="menuitem" style="width:140px" onclick="muda_grafico(this);" class="selecionada" tabindex="-1" href="#">GERAL</a></li>'
+    var item = '<li role="presentation" data-pos="'+1+'"><a role="menuitem" style="width:100px" onclick="muda_grafico(this);" class="selecionada glyphicon glyphicon-ok" tabindex="-1" href="#"> GERAL</a></li>'
     botao.append(item)
 
     var i = 2
