@@ -127,14 +127,29 @@
 <div class="container_partidos_sociais">
     <div id="partidos" class="col-xs-11">
         <div class="btn-group" role="group" aria-label="...">
+            <button type="button" onclick="revoluciona_grafico(this)" class="btn btn-default">Por data</button>
+            <button type="button" onclick="revoluciona_grafico(this)" class="btn btn-default">Por partido</button>
+        </div>
+        <br/>
+        <br/>
+        <div class="btn-group" role="group" aria-label="...">
             <div class="btn-group">
-                <button class="btn btn-default dropdown-toggle" type="button" id="dropdownMenu1" data-toggle="dropdown" aria-expanded="true">
+                <button class="btn btn-default dropdown-toggle botao-partido" type="button" id="dropdownMenu1" data-toggle="dropdown" aria-expanded="true">
                     Filtro de partido
                     <span class="caret"></span>
                 </button>
                 <ul id="lista_partidos" class="dropdown-menu" role="menu" aria-labelledby="dropdownMenu1">
                 </ul>
             </div>
+            <div class="btn-group" role="group" aria-label="...">
+
+            <button class="btn btn-default dropdown-toggle botao-data" type="button" id="dropdownMenu2" data-toggle="dropdown" aria-expanded="true">
+                Filtro de data
+                <span class="caret"></span>
+            </button>
+            <ul id="lista_datas" class="dropdown-menu"  role="menu" aria-labelledby="dropdownMenu2">
+            </ul>
+        </div>
         </div>
     </div>
     <div class="col-xs-1 pull-right social-sharing visible-sm visible-md visible-lg">

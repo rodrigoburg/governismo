@@ -10,12 +10,14 @@ var margins = {
 
 var url_gov = "data/variancia_camara_mes.json",
     url_pop = "https://spreadsheets.google.com/feeds/cells/1cR-OkyIUsU3vTw2JiCc9JbyTWvBl2dlzvtSfeTczlx0/2/public/values?alt=json",
+    serie_atual = "por_partido",
     dados = [],
     partidos = [],
-    selecionados = [],
+    partidos_selecionados = [],
+    datas = [],
+    datas_selecionadas = [],
     dados_gov,
     dados_pop,
-    mudado,
     grafico
 
 var paleta = {
@@ -66,6 +68,7 @@ var baixa_dados = function () {
             arruma_dados()
             desenha_grafico()
             adiciona_partidos()
+            adiciona_datas()
         })
     })
 }
@@ -130,6 +133,12 @@ var arruma_dados = function () {
     dados_pop.forEach(function (d) {
         //para cada dado de popularidade, pegamos a data e colocamos no formato ano-mês
         var data = d.CAMPO.split("/")[2]+"-"+d.CAMPO.split("/")[1]
+
+        //adicionamos ela no array de datas
+        if (datas.indexOf(data) == -1) {
+            datas.push(data)
+        }
+
         //e procuramos o governismo dos partidos nessa data específica
         var i = dados_gov.map(function (e){
             var governismo = filtra_gov(e,data)
@@ -216,7 +225,6 @@ function desenha_grafico() {
     //myChart.addMeasureAxis("z", "Operating Profit");
     serie = grafico.addSeries(["data","sigla"], dimple.plot.bubble);
     serie.getTooltipText = function (e) {
-        console.log(e)
         return [
                 "Data: " + e.aggField[0],
                 "Sigla: "+ e.aggField[1],
@@ -233,25 +241,44 @@ function desenha_grafico() {
     //myChart.addLegend(200, 10, 360, 20, "right");
     grafico.draw();
 
-    selecionados.push("GERAL")
+    //inicializa as duas variáveis básicas de seleção
+    partidos_selecionados.push("GERAL")
+    datas_selecionadas = datas
 }
 
 function muda_grafico(item) {
-    var sigla = item.text.trim()
-    //se a sigla não estiver selecionada, colocamos ela lá
-    if (selecionados.indexOf(sigla) == -1) {
-        selecionados.push(sigla)
-        $(item).addClass("glyphicon")
-        $(item).addClass("glyphicon-ok")
-    } else {
-        //se já estiver selecionada, retiramos
-        selecionados.splice(selecionados.indexOf(sigla),1)
-        $(item).removeClass("glyphicon")
-        $(item).removeClass("glyphicon-ok")
-
+    //se tiver algum item, muda nos menus e na lista de partidos ou datas selecionadas
+    if (item) {
+        var texto = item.text.trim()
+        //agora checamos se é data ou partido e mudamos na lista e na variável certa para cada caso
+        if (texto.indexOf("-") == -1) {
+            //se a sigla não estiver selecionada, colocamos ela lá
+            if (partidos_selecionados.indexOf(texto) == -1) {
+                partidos_selecionados.push(texto)
+                $(item).addClass("glyphicon")
+                $(item).addClass("glyphicon-ok")
+            } else {
+                //se já estiver selecionada, retiramos
+                partidos_selecionados.splice(partidos_selecionados.indexOf(texto),1)
+                $(item).removeClass("glyphicon")
+                $(item).removeClass("glyphicon-ok")
+            }
+        } else {
+            if (datas_selecionadas.indexOf(texto) == -1) {
+                datas_selecionadas.push(texto)
+                $(item).addClass("glyphicon")
+                $(item).addClass("glyphicon-ok")
+            } else {
+                datas_selecionadas.splice(datas_selecionadas.indexOf(texto), 1)
+                $(item).removeClass("glyphicon")
+                $(item).removeClass("glyphicon-ok")
+            }
+        }
     }
 
-    var novos_dados = dimple.filterData(dados, "sigla",selecionados)
+    //agora muda as séries de acordo com a opção que tiver sido selecionada
+    var novos_dados = dimple.filterData(dados, "sigla", partidos_selecionados)
+    novos_dados = dimple.filterData(novos_dados, "data", datas_selecionadas)
 
     grafico.data = novos_dados
     grafico.draw();
@@ -271,58 +298,38 @@ function adiciona_partidos() {
 
 }
 
-/*
- * Created by rodrigoburg on 23/03/15.
 
-url = "data/variancia_camara.json"
+function adiciona_datas() {
+    var botao = $("#lista_datas")
+    var item = '<li role="presentation" data-pos="'+1+'"><a role="menuitem" style="width:100px" onclick="muda_grafico(this);" class="selecionada glyphicon glyphicon-ok" tabindex="-1" href="#"> TODAS</a></li>'
+    botao.append(item)
 
-//div da tooltip
-var div = d3.select("body").append("div")
-  .attr("class", "tooltip")
-  .style("opacity", 0);
+    var i = 2
+    datas.forEach(function (d) {
+        item = '<li role="presentation" data-pos="'+i+'"><a role="menuitem" style="width:100px" onclick="muda_grafico(this);" class="selecionada" tabindex="-1" href="#"> '+d+'</a></li>'
+        botao.append(item)
+        i++
+    })
 
-
-//função para o menu de partidos
-function toggleSelect(el) {
-    var container_selecionadas = $("#partSelecionados"),
-        container_n_selecionadas = $("#partNSelecionados"),
-        item = $(el).parent();
-    $(el).toggleClass("selecionada").toggleClass("nao-selecionada").toggleClass("glyphicon").toggleClass("glyphicon-remove-circle");
-    if (item.parent()[0].id == "partNSelecionados") {
-        container_selecionadas.append(item);
-        partidos_selecionados.push($(el).text());
-        coloca_partido($(el).text())
-    } else {
-        container_n_selecionadas.append(item);
-        partidos_selecionados.splice(partidos_selecionados.indexOf($(el).text().trim()),1);
-        tira_partido($(el).text())
-    }
-    $("#partSelecionados li").sort(sort_comp).appendTo("#partSelecionados");
-    $("#partNSelecionados li").sort(sort_comp).appendTo("#partNSelecionados");
 }
+function revoluciona_grafico(item) {
+    var opcao = $(item).text().trim().toLowerCase().replace(" ","_")
+    serie_atual = opcao
 
+    /*//esconde ou mostra o botão do filtro
+    if (opcao == "por_data") {
+        $(".botao-partido").css("visibility","hidden")
+        $("#lista_partidos").css("visibility","hidden")
+        $(".botao-data").css("visibility","visible")
+        $("#lista_datas").css("visibility","visible")
+    } else if (opcao == "por_partido") {
+        $("#lista_partidos").css("visibility","visible")
+        $(".botao-partido").css("visibility","visible")
+        $(".botao-data").css("visibility","hidden")
+        $("#lista_datas").css("visibility","hidden")
+    }*/
 
-
-tecnica = d3.select("#tecnica")
-
-//coloca hover na tooltip
-d3.select("#nota")
-    .on("mouseover", function (d) {
-        tecnica.style("left", (d3.event.pageX - 50) + "px")
-                .style("top", (d3.event.pageY - 120) + "px")
-        tecnica.transition()
-            .duration(300)
-            .style("display", "block");
-    })
-    .on('mousemove', function(d) {
-        tecnica.style("left", (d3.event.pageX - 50) + "px")
-                .style("top", (d3.event.pageY - 120) + "px");
-    })
-    .on("mouseout", function(d) {
-        tecnica.transition()
-            .duration(400)
-            .style("display", "none");
-    });
-
-
-*/
+    //atualiza o gráfico
+    muda_grafico()
+    console.log(opcao)
+}
